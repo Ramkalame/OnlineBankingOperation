@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: onlineBankingOperations
+  datasource:
+    url: jdbc:mysql://localhost:3306/onlineBankingOperations_db
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
