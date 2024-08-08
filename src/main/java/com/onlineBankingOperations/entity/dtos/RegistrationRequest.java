@@ -10,8 +10,8 @@ import java.util.List;
 public class RegistrationRequest {
 
     private String name;
-    private List<String> email;
-    private List<String> mobileNumber;
+    private String email;
+    private String mobileNumber;
     private String password;
     private LocalDate dateOfBirth;
     private BigDecimal initialBalance;

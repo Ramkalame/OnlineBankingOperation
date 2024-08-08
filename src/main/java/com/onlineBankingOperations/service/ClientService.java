@@ -9,7 +9,9 @@ public interface ClientService {
     String signInClient(LoginRequest loginRequest);
     String addNewMobileNumber(Long clientId, String newMobileNumber);
     String addNewEmail(Long clientId, String newEmail);
-    String editMobileNumber(Long clientId, String modifiedMobileNumber);
-    String editEmail(Long clientId, String modifiedEmail);
+    String editMobileNumber(String oldMobileNumber, String modifiedMobileNumber);
+    String editEmail(String oldEmail, String modifiedEmail);
+    String deleteMobileNumber(String mobileNumber);
+    String deleteEmail(String email);
 
 }

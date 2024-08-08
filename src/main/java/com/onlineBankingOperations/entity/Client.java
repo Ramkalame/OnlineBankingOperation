@@ -23,16 +23,28 @@ public class Client {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long clientId;
     private String name;
-    @ElementCollection
-    private List<String> email = new ArrayList<>();
-    @ElementCollection
-    private List<String> mobileNumber = new ArrayList<>();
     private String password;
     private LocalDate dateOfBirth;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "client_id")
+    private List<Email> emails = new ArrayList<>();
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "client_id")
+    private List<MobileNumber> mobileNumbers = new ArrayList<>();
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "account_id")
     private Account account;
+
+    public void addMobileNumber(MobileNumber mobileNumber){
+        this.mobileNumbers.add(mobileNumber);
+    }
+
+    public void addEmail(Email email){
+        this.emails.add(email);
+    }
 
 
 }

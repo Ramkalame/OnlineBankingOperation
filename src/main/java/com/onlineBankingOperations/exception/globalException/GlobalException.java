@@ -25,4 +25,18 @@ public class GlobalException {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
 
     }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<?> userNotFoundExceptionHandler(UserNotFoundException ex){
+
+        ApiResponse<?> response = ApiResponse.builder()
+                .data(null)
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .message(ex.getMessage())
+                .timeStamp(LocalDateTime.now())
+                .success(false)
+                .build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+
+    }
 }
