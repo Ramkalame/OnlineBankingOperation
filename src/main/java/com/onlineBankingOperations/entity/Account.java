@@ -1,5 +1,6 @@
 package com.onlineBankingOperations.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,5 +24,6 @@ public class Account {
     private BigDecimal currentBalance;
 
     @OneToOne(mappedBy = "account")
+    @JsonIgnore
     private Client client;
 }

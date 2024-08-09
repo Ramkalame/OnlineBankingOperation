@@ -1,14 +1,19 @@
 package com.onlineBankingOperations.controller;
 
+import com.onlineBankingOperations.entity.Client;
 import com.onlineBankingOperations.entity.dtos.RegistrationRequest;
 import com.onlineBankingOperations.service.ClientService;
 import com.onlineBankingOperations.utils.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -101,6 +106,68 @@ public class ClientController {
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{clientId}/deleteMobileNumber")
+    public ResponseEntity<ApiResponse<String>> deleteMobileNumber(
+            @PathVariable Long clientId,
+            @RequestParam String mobileNumber) {
+
+        String message = clientService.deleteMobileNumber(clientId, mobileNumber);
+
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .data(message)
+                .statusCode(HttpStatus.OK.value())
+                .message("Mobile number deleted successfully !")
+                .timeStamp(LocalDateTime.now())
+                .success(true)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{clientId}/deleteEmail")
+    public ResponseEntity<ApiResponse<String>> deleteEmail(
+            @PathVariable Long clientId,
+            @RequestParam String email) {
+
+        String message = clientService.deleteEmail(clientId, email);
+
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .data(message)
+                .statusCode(HttpStatus.OK.value())
+                .message("Email deletion successfully")
+                .timeStamp(LocalDateTime.now())
+                .success(true)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<Page<Client>>> searchClients(
+            @RequestParam(value = "dateOfBirth", required = false) LocalDate dateOfBirth,
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "mobileNumber", required = false) String mobileNumber,
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,
+            @RequestParam(value = "pageSize", defaultValue = "5", required = false) Integer pageSize
+    ){
+
+        Page<Client> data = clientService.searchClients(Optional.ofNullable(dateOfBirth),
+                Optional.ofNullable(name),
+                Optional.ofNullable(mobileNumber),
+                Optional.ofNullable(email),
+                pageNumber,
+                pageSize);
+        ApiResponse<Page<Client>> response = ApiResponse.<Page<Client>>builder()
+                .data(data)
+                .statusCode(HttpStatus.OK.value())
+                .message("Here is list of client results")
+                .timeStamp(LocalDateTime.now())
+                .success(true)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 }
