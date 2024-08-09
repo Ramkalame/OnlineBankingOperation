@@ -1,4 +1,4 @@
-package com.onlineBankingOperations.exception.globalException;
+package com.onlineBankingOperations.exception;
 
 
 public class UserNotFoundException extends RuntimeException{

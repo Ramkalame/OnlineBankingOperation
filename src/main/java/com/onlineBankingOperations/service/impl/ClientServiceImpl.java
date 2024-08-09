@@ -6,8 +6,9 @@ import com.onlineBankingOperations.entity.Email;
 import com.onlineBankingOperations.entity.MobileNumber;
 import com.onlineBankingOperations.entity.dtos.LoginRequest;
 import com.onlineBankingOperations.entity.dtos.RegistrationRequest;
+import com.onlineBankingOperations.exception.AtLeastOneEmailRequiredException;
 import com.onlineBankingOperations.exception.UserAlreadyExistException;
-import com.onlineBankingOperations.exception.globalException.UserNotFoundException;
+import com.onlineBankingOperations.exception.UserNotFoundException;
 import com.onlineBankingOperations.repository.AccountRepo;
 import com.onlineBankingOperations.repository.ClientEmailRepo;
 import com.onlineBankingOperations.repository.ClientMobileNumberRepo;
@@ -15,9 +16,15 @@ import com.onlineBankingOperations.repository.ClientRepo;
 import com.onlineBankingOperations.service.ClientService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -115,12 +122,57 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public String deleteMobileNumber(String mobileNumber) {
-        return "";
+    public String deleteMobileNumber(Long clientId, String mobileNumber) {
+        MobileNumber existingMobileNumber = clientMobileNumberRepo.findByMobileNumber(mobileNumber)
+                .orElseThrow(()-> new UserNotFoundException("User NOT FOUND with this id: "+ mobileNumber));
+        Client existingClient = clientRepo.findById(clientId)
+                .orElseThrow(() -> new UserNotFoundException("Client NOT FOUND with this id: " + clientId));
+        List<MobileNumber> listOfMobileNumber = existingClient.getMobileNumbers();
+        if(listOfMobileNumber.size() >1){
+            listOfMobileNumber.removeIf(e->e.getMobileNumber().equals(mobileNumber));
+            clientRepo.save(existingClient);
+            clientMobileNumberRepo.delete(existingMobileNumber);
+            return "Mobile number deleted successfully !";
+
+        }else {
+            throw new AtLeastOneEmailRequiredException("At least one mobile number should be present for the client !");
+        }
+
     }
 
     @Override
-    public String deleteEmail(String email) {
-        return "";
+    public String deleteEmail(Long clientId, String email) {
+        Email existingEmail = clientEmailRepo.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User NOT FOUND with this id: " + email));
+        Client existingClient = clientRepo.findById(clientId)
+                .orElseThrow(() -> new UserNotFoundException("Client NOT FOUND with this id: " + clientId));
+        List<Email> listOfEmail = existingClient.getEmails();
+        if (listOfEmail.size() > 1) {
+            listOfEmail.removeIf(e -> e.getEmail().equals(email));
+            clientRepo.save(existingClient);
+            clientEmailRepo.delete(existingEmail);
+            return "Email deleted successfully!";
+        } else {
+            throw new AtLeastOneEmailRequiredException("At least one email should be present for the client !");
+        }
+    }
+
+    @Override
+    public Page<Client> searchClients(Optional<LocalDate> dateOfBirth, Optional<String> name, Optional<String> mobileNumber, Optional<String> email, Integer pageNumber, Integer pageSize) {
+
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+        if(dateOfBirth.isPresent()){
+            return clientRepo.searchClientByDateOfBirth(dateOfBirth.get(), pageable);
+        } else if (name.isPresent()) {
+            return clientRepo.searchClientByName("%"+name.get()+"%", pageable);
+        }else if(mobileNumber.isPresent()){
+            return clientRepo.searchClientByMobileNumber("%"+mobileNumber.get()+"%", pageable);
+        }else if(email.isPresent()){
+            return clientRepo.searchClientByEmail("%"+email.get()+"%", pageable);
+        }else{
+            throw new NoSuchElementException("There is no client available");
+        }
+
     }
 }
