@@ -3,6 +3,7 @@ package com.onlineBankingOperations.service;
 import com.onlineBankingOperations.entity.Client;
 import com.onlineBankingOperations.entity.dtos.LoginRequest;
 import com.onlineBankingOperations.entity.dtos.RegistrationRequest;
+import com.onlineBankingOperations.utils.PaginationResponse;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
@@ -19,11 +20,11 @@ public interface ClientService {
     String editEmail(String oldEmail, String modifiedEmail);
     String deleteMobileNumber(Long clientId, String mobileNumber);
     String deleteEmail(Long clientId, String email);
-    Page<Client> searchClients(Optional<LocalDate> dateOfBirth,
-                               Optional<String> name,
-                               Optional<String> mobileNumber,
-                               Optional<String> email,
-                               Integer pageNumber,
-                               Integer pageSize);
+    PaginationResponse searchClients(Optional<LocalDate> dateOfBirth,
+                                     Optional<String> name,
+                                     Optional<String> mobileNumber,
+                                     Optional<String> email,
+                                     Integer pageNumber,
+                                     Integer pageSize);
 
 }

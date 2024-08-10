@@ -2,8 +2,11 @@ package com.onlineBankingOperations.controller;
 
 import com.onlineBankingOperations.entity.Client;
 import com.onlineBankingOperations.entity.dtos.RegistrationRequest;
+import com.onlineBankingOperations.exception.UserNotFoundException;
+import com.onlineBankingOperations.service.AccountService;
 import com.onlineBankingOperations.service.ClientService;
 import com.onlineBankingOperations.utils.ApiResponse;
+import com.onlineBankingOperations.utils.PaginationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.springframework.data.domain.Page;
@@ -21,6 +24,7 @@ import java.util.Optional;
 public class ClientController {
 
     private final ClientService clientService;
+    private final AccountService accountService;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerClient(@RequestBody RegistrationRequest registrationRequest){
@@ -145,7 +149,7 @@ public class ClientController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<Client>>> searchClients(
+    public ResponseEntity<ApiResponse<PaginationResponse>> searchClients(
             @RequestParam(value = "dateOfBirth", required = false) LocalDate dateOfBirth,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "mobileNumber", required = false) String mobileNumber,
@@ -154,13 +158,13 @@ public class ClientController {
             @RequestParam(value = "pageSize", defaultValue = "5", required = false) Integer pageSize
     ){
 
-        Page<Client> data = clientService.searchClients(Optional.ofNullable(dateOfBirth),
+        PaginationResponse data = clientService.searchClients(Optional.ofNullable(dateOfBirth),
                 Optional.ofNullable(name),
                 Optional.ofNullable(mobileNumber),
                 Optional.ofNullable(email),
                 pageNumber,
                 pageSize);
-        ApiResponse<Page<Client>> response = ApiResponse.<Page<Client>>builder()
+        ApiResponse<PaginationResponse> response = ApiResponse.<PaginationResponse>builder()
                 .data(data)
                 .statusCode(HttpStatus.OK.value())
                 .message("Here is list of client results")
@@ -168,6 +172,25 @@ public class ClientController {
                 .success(true)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/transfer-money")
+    public ResponseEntity<ApiResponse<String>> transferMoney(
+            @RequestParam Long senderClientId,
+            @RequestParam Long receiverClientId,
+            @RequestParam Double money) {
+
+
+            String data = accountService.transferMoney(senderClientId, receiverClientId, money);
+            ApiResponse<String> response = ApiResponse.<String>builder()
+                    .data(data)
+                    .statusCode(HttpStatus.OK.value())
+                    .message("Transferred successfully")
+                    .timeStamp(LocalDateTime.now())
+                    .success(true)
+                    .build();
+            return ResponseEntity.ok(response);
+
     }
 
 }
