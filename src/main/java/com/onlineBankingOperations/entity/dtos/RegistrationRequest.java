@@ -14,7 +14,7 @@ public class RegistrationRequest {
     private String mobileNumber;
     private String password;
     private LocalDate dateOfBirth;
-    private BigDecimal initialBalance;
+    private Double initialBalance;
 
 
 }

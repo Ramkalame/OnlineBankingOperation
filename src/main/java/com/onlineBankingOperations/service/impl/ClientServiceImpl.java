@@ -14,11 +14,13 @@ import com.onlineBankingOperations.repository.ClientEmailRepo;
 import com.onlineBankingOperations.repository.ClientMobileNumberRepo;
 import com.onlineBankingOperations.repository.ClientRepo;
 import com.onlineBankingOperations.service.ClientService;
+import com.onlineBankingOperations.utils.PaginationResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -34,6 +36,7 @@ public class ClientServiceImpl implements ClientService {
     private final AccountRepo accountRepo;
     private final ClientEmailRepo clientEmailRepo;
     private final ClientMobileNumberRepo clientMobileNumberRepo;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     @Override
@@ -63,7 +66,7 @@ public class ClientServiceImpl implements ClientService {
                 .name(registrationRequest.getName())
                 .emails(List.of(newEmail))
                 .mobileNumbers(List.of(newMobileNumber))
-                .password(registrationRequest.getPassword())
+                .password(passwordEncoder.encode(registrationRequest.getPassword()))
                 .dateOfBirth(registrationRequest.getDateOfBirth())
                 .account(newAccount)
                 .build();
@@ -158,18 +161,51 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public Page<Client> searchClients(Optional<LocalDate> dateOfBirth, Optional<String> name, Optional<String> mobileNumber, Optional<String> email, Integer pageNumber, Integer pageSize) {
+    public PaginationResponse searchClients(Optional<LocalDate> dateOfBirth, Optional<String> name, Optional<String> mobileNumber, Optional<String> email, Integer pageNumber, Integer pageSize) {
 
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
 
+
         if(dateOfBirth.isPresent()){
-            return clientRepo.searchClientByDateOfBirth(dateOfBirth.get(), pageable);
+             Page<Client> pageClientsDateOfBirth = clientRepo.searchClientByDateOfBirth(dateOfBirth.get(), pageable);
+            return PaginationResponse.builder()
+                    .content(pageClientsDateOfBirth.getContent())
+                    .pageNumber(pageClientsDateOfBirth.getNumber())
+                    .pageSize(pageClientsDateOfBirth.getSize())
+                    .totalElement(pageClientsDateOfBirth.getTotalElements())
+                    .totalPage(pageClientsDateOfBirth.getTotalPages())
+                    .lastPage(pageClientsDateOfBirth.isLast())
+                    .build();
         } else if (name.isPresent()) {
-            return clientRepo.searchClientByName("%"+name.get()+"%", pageable);
+            Page<Client> pageClientsName = clientRepo.searchClientByName("%"+name.get()+"%", pageable);
+            return PaginationResponse.builder()
+                    .content(pageClientsName.getContent())
+                    .pageNumber(pageClientsName.getNumber())
+                    .pageSize(pageClientsName.getSize())
+                    .totalElement(pageClientsName.getTotalElements())
+                    .totalPage(pageClientsName.getTotalPages())
+                    .lastPage(pageClientsName.isLast())
+                    .build();
         }else if(mobileNumber.isPresent()){
-            return clientRepo.searchClientByMobileNumber("%"+mobileNumber.get()+"%", pageable);
+            Page<Client> pageClientsMobileNumber = clientRepo.searchClientByMobileNumber("%"+mobileNumber.get()+"%", pageable);
+            return PaginationResponse.builder()
+                    .content(pageClientsMobileNumber.getContent())
+                    .pageNumber(pageClientsMobileNumber.getNumber())
+                    .pageSize(pageClientsMobileNumber.getSize())
+                    .totalElement(pageClientsMobileNumber.getTotalElements())
+                    .totalPage(pageClientsMobileNumber.getTotalPages())
+                    .lastPage(pageClientsMobileNumber.isLast())
+                    .build();
         }else if(email.isPresent()){
-            return clientRepo.searchClientByEmail("%"+email.get()+"%", pageable);
+            Page<Client> pageClientsEmail = clientRepo.searchClientByEmail("%"+email.get()+"%", pageable);
+            return PaginationResponse.builder()
+                    .content(pageClientsEmail.getContent())
+                    .pageNumber(pageClientsEmail.getNumber())
+                    .pageSize(pageClientsEmail.getSize())
+                    .totalElement(pageClientsEmail.getTotalElements())
+                    .totalPage(pageClientsEmail.getTotalPages())
+                    .lastPage(pageClientsEmail.isLast())
+                    .build();
         }else{
             throw new NoSuchElementException("There is no client available");
         }

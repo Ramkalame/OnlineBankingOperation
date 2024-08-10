@@ -1,6 +1,7 @@
 package com.onlineBankingOperations.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +24,7 @@ public class Client {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long clientId;
     private String name;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)//using this property we  can not send the password from the backend to frontend side for the security purpose
     private String password;
     private LocalDate dateOfBirth;
 

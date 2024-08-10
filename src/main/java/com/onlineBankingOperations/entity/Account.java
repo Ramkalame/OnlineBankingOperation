@@ -20,8 +20,8 @@ public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long accountId;
-    private BigDecimal initialBalance;
-    private BigDecimal currentBalance;
+    private Double initialBalance;
+    private Double currentBalance;
 
     @OneToOne(mappedBy = "account")
     @JsonIgnore
