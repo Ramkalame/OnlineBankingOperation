@@ -1,15 +1,14 @@
 package com.onlineBankingOperations.controller;
 
 import com.onlineBankingOperations.entity.Client;
+import com.onlineBankingOperations.entity.dtos.LoginRequest;
 import com.onlineBankingOperations.entity.dtos.RegistrationRequest;
-import com.onlineBankingOperations.exception.UserNotFoundException;
 import com.onlineBankingOperations.service.AccountService;
 import com.onlineBankingOperations.service.ClientService;
 import com.onlineBankingOperations.utils.ApiResponse;
 import com.onlineBankingOperations.utils.PaginationResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +20,7 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/client")
+@SecurityRequirement(name = "JWT_Spring_Security")
 public class ClientController {
 
     private final ClientService clientService;
@@ -39,9 +39,22 @@ public class ClientController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/{clientId}/addMobileNumber")
+    @PostMapping("/login")
+    public ResponseEntity<?> signInClient(@RequestBody LoginRequest loginRequest) {
+        String data = clientService.authenticate(loginRequest);
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .data(data)
+                .statusCode(HttpStatus.OK.value())
+                .message("User logged in successfully !!")
+                .timeStamp(LocalDateTime.now())
+                .success(true)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/addMobileNumber")
     public ResponseEntity<ApiResponse<String>> addNewMobileNumber(
-            @PathVariable Long clientId,
+            @RequestParam Long clientId,
             @RequestParam String newMobileNumber) {
 
         String message = clientService.addNewMobileNumber(clientId, newMobileNumber);
@@ -57,9 +70,9 @@ public class ClientController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{clientId}/addEmail")
+    @PostMapping("/addEmail")
     public ResponseEntity<ApiResponse<String>> addNewEmail(
-            @PathVariable Long clientId,
+            @RequestParam Long clientId,
             @RequestParam String newEmail) {
 
         String message = clientService.addNewEmail(clientId, newEmail);
@@ -112,9 +125,9 @@ public class ClientController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{clientId}/deleteMobileNumber")
+    @DeleteMapping("/deleteMobileNumber")
     public ResponseEntity<ApiResponse<String>> deleteMobileNumber(
-            @PathVariable Long clientId,
+            @RequestParam Long clientId,
             @RequestParam String mobileNumber) {
 
         String message = clientService.deleteMobileNumber(clientId, mobileNumber);
@@ -130,9 +143,9 @@ public class ClientController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{clientId}/deleteEmail")
+    @DeleteMapping("/deleteEmail")
     public ResponseEntity<ApiResponse<String>> deleteEmail(
-            @PathVariable Long clientId,
+            @RequestParam Long clientId,
             @RequestParam String email) {
 
         String message = clientService.deleteEmail(clientId, email);

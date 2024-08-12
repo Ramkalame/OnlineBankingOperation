@@ -1,18 +1,13 @@
 package com.onlineBankingOperations.service.impl;
 
-import com.onlineBankingOperations.entity.Account;
-import com.onlineBankingOperations.entity.Client;
-import com.onlineBankingOperations.entity.Email;
-import com.onlineBankingOperations.entity.MobileNumber;
+import com.onlineBankingOperations.config.JWTService;
+import com.onlineBankingOperations.entity.*;
 import com.onlineBankingOperations.entity.dtos.LoginRequest;
 import com.onlineBankingOperations.entity.dtos.RegistrationRequest;
 import com.onlineBankingOperations.exception.AtLeastOneEmailRequiredException;
 import com.onlineBankingOperations.exception.UserAlreadyExistException;
 import com.onlineBankingOperations.exception.UserNotFoundException;
-import com.onlineBankingOperations.repository.AccountRepo;
-import com.onlineBankingOperations.repository.ClientEmailRepo;
-import com.onlineBankingOperations.repository.ClientMobileNumberRepo;
-import com.onlineBankingOperations.repository.ClientRepo;
+import com.onlineBankingOperations.repository.*;
 import com.onlineBankingOperations.service.ClientService;
 import com.onlineBankingOperations.utils.PaginationResponse;
 import jakarta.transaction.Transactional;
@@ -20,23 +15,26 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class ClientServiceImpl implements ClientService {
 
     private final ClientRepo clientRepo;
-    private final AccountRepo accountRepo;
     private final ClientEmailRepo clientEmailRepo;
     private final ClientMobileNumberRepo clientMobileNumberRepo;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager ;
+    private final JWTService jwtService;
 
     @Transactional
     @Override
@@ -74,15 +72,17 @@ public class ClientServiceImpl implements ClientService {
         return "Client is Registered Successfully !!";
     }
 
-    @Override
-    public String signInClient(LoginRequest loginRequest) {
+    private boolean isValidPassword(Client client, String password) {
+        return passwordEncoder.matches(password, client.getPassword());
+    }
 
-        return "";
+    private boolean isEmailAssociated(Client client, String email) {
+        return client.getEmails().stream()
+                .anyMatch(e -> e.getEmail().equals(email));
     }
 
     @Override
     public String addNewMobileNumber(Long clientId, String newMobileNumber) {
-
         Client existingClient = clientRepo.findById(clientId)
                 .orElseThrow(()->new UserNotFoundException("User Not Found with this ID: "+ clientId));
         MobileNumber newMobileNumber1 = MobileNumber.builder().mobileNumber(newMobileNumber).build();
@@ -210,5 +210,15 @@ public class ClientServiceImpl implements ClientService {
             throw new NoSuchElementException("There is no client available");
         }
 
+    }
+
+    @Override
+    public String authenticate(LoginRequest loginDto) {
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
+        if (authentication.isAuthenticated()) {
+            return jwtService.generateToken(loginDto.getUsername());
+        } else {
+            return "fail";
+        }
     }
 }

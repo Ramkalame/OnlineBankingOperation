@@ -1,6 +1,7 @@
 package com.onlineBankingOperations.config;
 
 import com.onlineBankingOperations.entity.Client;
+import com.onlineBankingOperations.entity.UserPrincipal;
 import com.onlineBankingOperations.repository.ClientRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,14 +20,8 @@ public class ClientDetailsService implements UserDetailsService {
 
     private final ClientRepo clientRepo;
 
-    /**
-     * @param username
-     * @return
-     * @throws UsernameNotFoundException
-     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Client existingClient = clientRepo.findByEmail(username);
-        return new CustomUserDetails(existingClient);
+        return new UserPrincipal(clientRepo.findByEmail(username));
     }
 }

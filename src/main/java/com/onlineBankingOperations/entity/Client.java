@@ -3,10 +3,8 @@ package com.onlineBankingOperations.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -18,7 +16,8 @@ import java.util.List;
 @Builder
 @Table(name = "client")
 @Entity
-public class Client {
+@ToString(exclude = "account")
+public class Client{
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -28,17 +27,18 @@ public class Client {
     private String password;
     private LocalDate dateOfBirth;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "client_id")
     private List<Email> emails = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "client_id")
     private List<MobileNumber> mobileNumbers = new ArrayList<>();
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "account_id")
     private Account account;
+
 
     public void addMobileNumber(MobileNumber mobileNumber){
         this.mobileNumbers.add(mobileNumber);
@@ -47,6 +47,5 @@ public class Client {
     public void addEmail(Email email){
         this.emails.add(email);
     }
-
 
 }
