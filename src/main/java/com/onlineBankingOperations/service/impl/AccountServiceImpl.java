@@ -49,6 +49,6 @@ public class AccountServiceImpl implements AccountService {
         receiver.getAccount().setCurrentBalance(receiverCurrentBalance + money);
         clientRepo.save(sender);
         clientRepo.save(receiver);
-        return sender.getName()+" successfully sent "+ money +" rupee to "+receiver.getName();
+        return sender.getName()+" successfully sent "+ money +" rupees to "+receiver.getName();
     }
 }

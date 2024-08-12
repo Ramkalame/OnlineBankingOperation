@@ -4,16 +4,13 @@ import com.onlineBankingOperations.entity.Client;
 import com.onlineBankingOperations.entity.dtos.LoginRequest;
 import com.onlineBankingOperations.entity.dtos.RegistrationRequest;
 import com.onlineBankingOperations.utils.PaginationResponse;
-import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 public interface ClientService {
 
     String signUpClient(RegistrationRequest registrationRequest);
-    String signInClient(LoginRequest loginRequest);
     String addNewMobileNumber(Long clientId, String newMobileNumber);
     String addNewEmail(Long clientId, String newEmail);
     String editMobileNumber(String oldMobileNumber, String modifiedMobileNumber);
@@ -26,5 +23,6 @@ public interface ClientService {
                                      Optional<String> email,
                                      Integer pageNumber,
                                      Integer pageSize);
+    String authenticate(LoginRequest loginDto);
 
 }
