@@ -163,18 +163,12 @@ public class ClientController {
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<PaginationResponse>> searchClients(
-            @RequestParam(value = "dateOfBirth", required = false) LocalDate dateOfBirth,
-            @RequestParam(value = "name", required = false) String name,
-            @RequestParam(value = "mobileNumber", required = false) String mobileNumber,
-            @RequestParam(value = "email", required = false) String email,
+            @RequestParam String searchKeywords,
             @RequestParam(value = "pageNumber", defaultValue = "0", required = false) Integer pageNumber,
             @RequestParam(value = "pageSize", defaultValue = "5", required = false) Integer pageSize
     ){
 
-        PaginationResponse data = clientService.searchClients(Optional.ofNullable(dateOfBirth),
-                Optional.ofNullable(name),
-                Optional.ofNullable(mobileNumber),
-                Optional.ofNullable(email),
+        PaginationResponse data = clientService.searchClients(searchKeywords,
                 pageNumber,
                 pageSize);
         ApiResponse<PaginationResponse> response = ApiResponse.<PaginationResponse>builder()

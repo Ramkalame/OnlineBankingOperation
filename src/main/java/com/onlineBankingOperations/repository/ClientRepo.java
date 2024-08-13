@@ -25,13 +25,13 @@ public interface ClientRepo extends JpaRepository<Client, Long> {
     @Query("SELECT c FROM Client c WHERE c.dateOfBirth =:dateOfBirth")
     Page<Client> searchClientByDateOfBirth(@Param("dateOfBirth") LocalDate dateOfBirth, Pageable pageable);
 
-    @Query("SELECT c FROM Client c JOIN c.mobileNumbers m WHERE m.mobileNumber LIKE :mobileNumber")
+    @Query("SELECT c FROM Client c JOIN c.mobileNumbers m WHERE m.mobileNumber =:mobileNumber")
     Page<Client> searchClientByMobileNumber(@Param("mobileNumber") String mobileNumber, Pageable pageable);
 
     @Query("SELECT c FROM Client c WHERE c.name LIKE :name")
     Page<Client> searchClientByName(@Param("name") String name, Pageable pageable);
 
-    @Query("SELECT c FROM Client c JOIN c.emails e WHERE e.email LIKE :email")
+    @Query("SELECT c FROM Client c JOIN c.emails e WHERE e.email =:email")
     Page<Client> searchClientByEmail(@Param("email") String email, Pageable pageable);
 
 }
