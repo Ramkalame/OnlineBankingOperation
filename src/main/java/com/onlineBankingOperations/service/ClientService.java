@@ -17,12 +17,7 @@ public interface ClientService {
     String editEmail(String oldEmail, String modifiedEmail);
     String deleteMobileNumber(Long clientId, String mobileNumber);
     String deleteEmail(Long clientId, String email);
-    PaginationResponse searchClients(Optional<LocalDate> dateOfBirth,
-                                     Optional<String> name,
-                                     Optional<String> mobileNumber,
-                                     Optional<String> email,
-                                     Integer pageNumber,
-                                     Integer pageSize);
     String authenticate(LoginRequest loginDto);
+    PaginationResponse searchClients(String searchKeywords, Integer pageNumber, Integer pageSize);
 
 }

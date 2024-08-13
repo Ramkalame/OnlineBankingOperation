@@ -16,14 +16,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +37,12 @@ public class ClientServiceImpl implements ClientService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager ;
     private final JWTService jwtService;
+
+
+
+    private static final Pattern MOBILE_NUMBER_PATTERN = Pattern.compile("^\\+?[0-9]{10,15}$");
+
+
 
     @Transactional
     @Override
@@ -160,57 +168,7 @@ public class ClientServiceImpl implements ClientService {
         }
     }
 
-    @Override
-    public PaginationResponse searchClients(Optional<LocalDate> dateOfBirth, Optional<String> name, Optional<String> mobileNumber, Optional<String> email, Integer pageNumber, Integer pageSize) {
 
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
-
-
-        if(dateOfBirth.isPresent()){
-             Page<Client> pageClientsDateOfBirth = clientRepo.searchClientByDateOfBirth(dateOfBirth.get(), pageable);
-            return PaginationResponse.builder()
-                    .content(pageClientsDateOfBirth.getContent())
-                    .pageNumber(pageClientsDateOfBirth.getNumber())
-                    .pageSize(pageClientsDateOfBirth.getSize())
-                    .totalElement(pageClientsDateOfBirth.getTotalElements())
-                    .totalPage(pageClientsDateOfBirth.getTotalPages())
-                    .lastPage(pageClientsDateOfBirth.isLast())
-                    .build();
-        } else if (name.isPresent()) {
-            Page<Client> pageClientsName = clientRepo.searchClientByName("%"+name.get()+"%", pageable);
-            return PaginationResponse.builder()
-                    .content(pageClientsName.getContent())
-                    .pageNumber(pageClientsName.getNumber())
-                    .pageSize(pageClientsName.getSize())
-                    .totalElement(pageClientsName.getTotalElements())
-                    .totalPage(pageClientsName.getTotalPages())
-                    .lastPage(pageClientsName.isLast())
-                    .build();
-        }else if(mobileNumber.isPresent()){
-            Page<Client> pageClientsMobileNumber = clientRepo.searchClientByMobileNumber("%"+mobileNumber.get()+"%", pageable);
-            return PaginationResponse.builder()
-                    .content(pageClientsMobileNumber.getContent())
-                    .pageNumber(pageClientsMobileNumber.getNumber())
-                    .pageSize(pageClientsMobileNumber.getSize())
-                    .totalElement(pageClientsMobileNumber.getTotalElements())
-                    .totalPage(pageClientsMobileNumber.getTotalPages())
-                    .lastPage(pageClientsMobileNumber.isLast())
-                    .build();
-        }else if(email.isPresent()){
-            Page<Client> pageClientsEmail = clientRepo.searchClientByEmail("%"+email.get()+"%", pageable);
-            return PaginationResponse.builder()
-                    .content(pageClientsEmail.getContent())
-                    .pageNumber(pageClientsEmail.getNumber())
-                    .pageSize(pageClientsEmail.getSize())
-                    .totalElement(pageClientsEmail.getTotalElements())
-                    .totalPage(pageClientsEmail.getTotalPages())
-                    .lastPage(pageClientsEmail.isLast())
-                    .build();
-        }else{
-            throw new NoSuchElementException("There is no client available");
-        }
-
-    }
 
     @Override
     public String authenticate(LoginRequest loginDto) {
@@ -219,6 +177,66 @@ public class ClientServiceImpl implements ClientService {
             return jwtService.generateToken(loginDto.getUsername());
         } else {
             return "fail";
+        }
+    }
+
+    @Override
+    public PaginationResponse searchClients(String searchKeywords, Integer pageNumber, Integer pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+        if(searchKeywords.contains("@")){
+            Page<Client> pageClientsEmail = clientRepo.searchClientByEmail(searchKeywords, pageable);
+            return PaginationResponse.builder()
+                    .content(pageClientsEmail.getContent())
+                    .pageNumber(pageClientsEmail.getNumber())
+                    .pageSize(pageClientsEmail.getSize())
+                    .totalElement(pageClientsEmail.getTotalElements())
+                    .totalPage(pageClientsEmail.getTotalPages())
+                    .lastPage(pageClientsEmail.isLast())
+                    .build();
+        } else if (MOBILE_NUMBER_PATTERN.matcher(searchKeywords).matches()) {
+            Page<Client> pageClientsMobileNumber = clientRepo.searchClientByMobileNumber(searchKeywords, pageable);
+            return PaginationResponse.builder()
+                    .content(pageClientsMobileNumber.getContent())
+                    .pageNumber(pageClientsMobileNumber.getNumber())
+                    .pageSize(pageClientsMobileNumber.getSize())
+                    .totalElement(pageClientsMobileNumber.getTotalElements())
+                    .totalPage(pageClientsMobileNumber.getTotalPages())
+                    .lastPage(pageClientsMobileNumber.isLast())
+                    .build();
+        } else if ((isValidLocalDate(searchKeywords, DateTimeFormatter.ISO_LOCAL_DATE) || (isValidLocalDate(searchKeywords, DateTimeFormatter.ofPattern("dd-MM-yyyy"))))) {
+            Page<Client> pageClientsDateOfBirth = clientRepo.searchClientByDateOfBirth(LocalDate.parse(searchKeywords), pageable);
+            return PaginationResponse.builder()
+                    .content(pageClientsDateOfBirth.getContent())
+                    .pageNumber(pageClientsDateOfBirth.getNumber())
+                    .pageSize(pageClientsDateOfBirth.getSize())
+                    .totalElement(pageClientsDateOfBirth.getTotalElements())
+                    .totalPage(pageClientsDateOfBirth.getTotalPages())
+                    .lastPage(pageClientsDateOfBirth.isLast())
+                    .build();
+        }else {
+            Page<Client> pageClientsName = clientRepo.searchClientByName("%"+searchKeywords+"%", pageable);
+            return PaginationResponse.builder()
+                    .content(pageClientsName.getContent())
+                    .pageNumber(pageClientsName.getNumber())
+                    .pageSize(pageClientsName.getSize())
+                    .totalElement(pageClientsName.getTotalElements())
+                    .totalPage(pageClientsName.getTotalPages())
+                    .lastPage(pageClientsName.isLast())
+                    .build();
+        }
+
+    }
+
+
+
+    private boolean isValidLocalDate(String someString, DateTimeFormatter formatter){
+        try{
+            LocalDate.parse(someString, formatter);
+            return true;
+        }catch (DateTimeParseException ex){
+            ex.printStackTrace();
+            return false;
         }
     }
 }
